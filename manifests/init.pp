@@ -11,7 +11,11 @@
 #
 # Parameters:
 #
-#   $allow_icmp = true
+#  $allow_icmp           = true,
+#  $iptables_init_script = $iptables::params::iptables_init_script,
+#  $iptables_save_bin    = $iptables::params::iptables_save_bin,
+#  $iptables_restore_bin = $iptables::params::iptables_restore_bin,
+#  $iptables_rules       = $iptables::params::iptables_rules
 #
 # Actions:
 #
@@ -24,38 +28,42 @@
 #
 # Sample Usage:
 #
-#   class { 'iptables':
-#     allow_icmp => false
-#   }
+#   include iptables
 #
 # [Remember: No empty lines between comments and class definition]
-class iptables ( $allow_icmp = true ) {
+class iptables (
 
-  include iptables::params
+  $allow_icmp           = $iptables::params::allow_icmp,
+  $iptables_init_script = $iptables::params::iptables_init_script,
+  $iptables_save_bin    = $iptables::params::iptables_save_bin,
+  $iptables_restore_bin = $iptables::params::iptables_restore_bin,
+  $iptables_rules       = $iptables::params::iptables_rules
+)
+inherits iptables::params {
 
   #-----------------------------------------------------------------------------
 
-  if $iptables::params::iptables_init_script {
-    file { $iptables::params::iptables_init_script:
-      owner    => "root",
-      group    => "root",
-      mode     => 755,
-      content  => template("iptables/iptables_init_script.erb"),
+  stage { ['iptables-init', 'iptables-exit']: }
+  Stage['iptables-init'] -> Stage['main'] -> Stage['iptables-exit']
+
+  class { 'iptables::pre_rules': stage => 'iptables-init' }
+  class { 'iptables::exit':
+    iptables_init_script => $iptables_init_script,
+    iptables_save_bin    => $iptables_save_bin,
+    iptables_restore_bin => $iptables_restore_bin,
+    iptables_rules       => $iptables_rules,
+    stage                => 'iptables-exit',
+  }
+
+  if $allow_icmp {
+    firewall { '101 INPUT allow ICMP':
+      action  => accept,
+      icmp    => '8',
+      proto   => 'icmp',
     }
   }
 
-  #-----------------------------------------------------------------------------
-
-  exec { "persist-firewall":
-    command     => "${iptables::params::iptables_save_bin} > ${iptables::params::iptables_rules}",
-    refreshonly => true,
+  resources { "firewall":
+    purge => true
   }
-
-  ::Firewall {
-    notify => Exec["persist-firewall"]
-  }
-
-  #-----------------------------------------------------------------------------
-
-  class { 'iptables::firewall': allow_icmp => $allow_icmp }
 }
