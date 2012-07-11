@@ -9,21 +9,14 @@ class iptables::exit (
 inherits iptables::params {
 
   #-----------------------------------------------------------------------------
-  # Last remaining system rules.
-
-  class { 'iptables::post_rules':
-    notify => Exec['persist-firewall']
-  }
-
-  #-----------------------------------------------------------------------------
-  # Save rules.
+  # Persistence
 
   exec { 'persist-firewall':
     command => "${iptables_save_bin} > ${iptables_rules}",
   }
 
   #-----------------------------------------------------------------------------
-  # Restore rules at boot.
+  # Restoration
 
   if $iptables_init_script {
     file { $iptables_init_script:

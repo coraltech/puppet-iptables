@@ -41,26 +41,36 @@ class iptables (
 )
 inherits iptables::params {
 
-  #-----------------------------------------------------------------------------
-
   stage { ['iptables-init', 'iptables-exit']: }
   Stage['iptables-init'] -> Stage['main'] -> Stage['iptables-exit']
 
+  #-----------------------------------------------------------------------------
+  # Firewall rules
+
   class { 'iptables::pre_rules': stage => 'iptables-init' }
+
+  if $allow_icmp {
+    firewall { '101 INPUT allow ICMP':
+      action => accept,
+      icmp   => '8',
+      proto  => 'icmp',
+    }
+  }
+
+  class { 'iptables::post_rules':
+    stage  => 'iptables-exit',
+    notify => Class['iptables::exit'],
+  }
+
+  #-----------------------------------------------------------------------------
+  # Finalization
+
   class { 'iptables::exit':
+    stage                => 'iptables-exit',
     iptables_init_script => $iptables_init_script,
     iptables_save_bin    => $iptables_save_bin,
     iptables_restore_bin => $iptables_restore_bin,
     iptables_rules       => $iptables_rules,
-    stage                => 'iptables-exit',
-  }
-
-  if $allow_icmp {
-    firewall { '101 INPUT allow ICMP':
-      action  => accept,
-      icmp    => '8',
-      proto   => 'icmp',
-    }
   }
 
   resources { "firewall":
