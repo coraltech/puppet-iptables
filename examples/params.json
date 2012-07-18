@@ -1,0 +1,3 @@
+{
+  "iptables_allow_icmp" : "true"
+}

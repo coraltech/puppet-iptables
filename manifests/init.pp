@@ -3,19 +3,13 @@
 #   This module creates an extensible firewall rule system and a locked down
 #   default.
 #
-#   Adrian Webb <adrian.webb@coraltg.com>
+#   Adrian Webb <adrian.webb@coraltech.net>
 #   2012-05-22
 #
 #   Tested platforms:
 #    - Ubuntu 12.04
 #
-# Parameters:
-#
-#  $allow_icmp           = true,
-#  $iptables_init_script = $iptables::params::iptables_init_script,
-#  $iptables_save_bin    = $iptables::params::iptables_save_bin,
-#  $iptables_restore_bin = $iptables::params::iptables_restore_bin,
-#  $iptables_rules       = $iptables::params::iptables_rules
+# Parameters: (see <examples/params.json> for Hiera configurations)
 #
 # Actions:
 #
@@ -33,23 +27,24 @@
 # [Remember: No empty lines between comments and class definition]
 class iptables (
 
-  $allow_icmp           = $iptables::params::allow_icmp,
-  $iptables_init_script = $iptables::params::iptables_init_script,
-  $iptables_save_bin    = $iptables::params::iptables_save_bin,
-  $iptables_restore_bin = $iptables::params::iptables_restore_bin,
-  $iptables_rules       = $iptables::params::iptables_rules
-)
-inherits iptables::params {
+  $allow_icmp        = $iptables::params::allow_icmp,
+  $init_bin          = $iptables::params::os_init_bin,
+  $save_bin          = $iptables::params::os_save_bin,
+  $restore_bin       = $iptables::params::os_restore_bin,
+  $rules_file        = $iptables::params::os_rules_file,
+  $init_bin_template = $iptables::params::os_init_bin_template,
+
+) inherits iptables::params {
 
   stage { ['iptables-init', 'iptables-exit']: }
   Stage['iptables-init'] -> Stage['main'] -> Stage['iptables-exit']
 
   #-----------------------------------------------------------------------------
-  # Firewall rules
+  # Basic firewall rules
 
   class { 'iptables::pre_rules': stage => 'iptables-init' }
 
-  if $allow_icmp {
+  if $allow_icmp == 'true' {
     firewall { '101 INPUT allow ICMP':
       action => accept,
       icmp   => '8',
@@ -66,11 +61,12 @@ inherits iptables::params {
   # Finalization
 
   class { 'iptables::exit':
-    stage                => 'iptables-exit',
-    iptables_init_script => $iptables_init_script,
-    iptables_save_bin    => $iptables_save_bin,
-    iptables_restore_bin => $iptables_restore_bin,
-    iptables_rules       => $iptables_rules,
+    stage             => 'iptables-exit',
+    init_bin          => $init_bin,
+    save_bin          => $save_bin,
+    restore_bin       => $restore_bin,
+    rules_file        => $rules_file,
+    init_bin_template => $init_bin_template,
   }
 
   resources { "firewall":
