@@ -6,7 +6,7 @@ class iptables::params {
   #-----------------------------------------------------------------------------
   # General configurations
 
-  if $::hiera_exists {
+  if $::hiera_ready {
     $allow_icmp = hiera('iptables_allow_icmp', $iptables::default::allow_icmp)
   }
   else {
