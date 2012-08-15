@@ -28,11 +28,11 @@
 class iptables (
 
   $allow_icmp        = $iptables::params::allow_icmp,
-  $init_bin          = $iptables::params::os_init_bin,
-  $save_bin          = $iptables::params::os_save_bin,
-  $restore_bin       = $iptables::params::os_restore_bin,
-  $rules_file        = $iptables::params::os_rules_file,
-  $init_bin_template = $iptables::params::os_init_bin_template,
+  $init_bin          = $iptables::params::init_bin,
+  $init_bin_template = $iptables::params::init_bin_template,
+  $save_bin          = $iptables::params::save_bin,
+  $restore_bin       = $iptables::params::restore_bin,
+  $rules_file        = $iptables::params::rules_file,
 
 ) inherits iptables::params {
 
@@ -63,10 +63,10 @@ class iptables (
   class { 'iptables::exit':
     stage             => 'iptables-exit',
     init_bin          => $init_bin,
+    init_bin_template => $init_bin_template,
     save_bin          => $save_bin,
     restore_bin       => $restore_bin,
     rules_file        => $rules_file,
-    init_bin_template => $init_bin_template,
   }
 
   resources { "firewall":

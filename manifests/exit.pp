@@ -1,11 +1,11 @@
 
 class iptables::exit (
 
-  $init_bin             = $iptables::params::os_init_bin,
-  $save_bin             = $iptables::params::os_save_bin,
-  $restore_bin          = $iptables::params::os_restore_bin,
-  $rules_file           = $iptables::params::os_rules_file,
-  $init_bin_template    = $iptables::params::os_init_bin_template,
+  $init_bin             = $iptables::params::init_bin,
+  $init_bin_template    = $iptables::params::init_bin_template,
+  $save_bin             = $iptables::params::save_bin,
+  $restore_bin          = $iptables::params::restore_bin,
+  $rules_file           = $iptables::params::rules_file,
 
 ) inherits iptables::params {
 
