@@ -27,49 +27,24 @@
 # [Remember: No empty lines between comments and class definition]
 class iptables (
 
-  $allow_icmp        = $iptables::params::allow_icmp,
-  $init_bin          = $iptables::params::init_bin,
-  $init_bin_template = $iptables::params::init_bin_template,
-  $save_bin          = $iptables::params::save_bin,
-  $restore_bin       = $iptables::params::restore_bin,
-  $rules_file        = $iptables::params::rules_file,
+  $allow_icmp = $iptables::params::allow_icmp
 
 ) inherits iptables::params {
-
-  stage { ['iptables-init', 'iptables-exit']: }
-  Stage['iptables-init'] -> Stage['main'] -> Stage['iptables-exit']
 
   #-----------------------------------------------------------------------------
   # Basic firewall rules
 
-  class { 'iptables::pre_rules': stage => 'iptables-init' }
+  include firewall
 
-  if $allow_icmp == 'true' {
+  # These are added to the Firewall execution flow in site.pp
+  include iptables::pre_rules
+  include iptables::post_rules
+
+  if $allow_icmp {
     firewall { '101 INPUT allow ICMP':
       action => accept,
       icmp   => '8',
       proto  => 'icmp',
     }
-  }
-
-  class { 'iptables::post_rules':
-    stage  => 'iptables-exit',
-    notify => Class['iptables::exit'],
-  }
-
-  #-----------------------------------------------------------------------------
-  # Finalization
-
-  class { 'iptables::exit':
-    stage             => 'iptables-exit',
-    init_bin          => $init_bin,
-    init_bin_template => $init_bin_template,
-    save_bin          => $save_bin,
-    restore_bin       => $restore_bin,
-    rules_file        => $rules_file,
-  }
-
-  resources { "firewall":
-    purge => true
   }
 }

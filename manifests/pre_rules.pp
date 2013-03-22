@@ -1,6 +1,12 @@
 
 class iptables::pre_rules {
 
+  Firewall {
+    require => undef,
+  }
+
+  #---
+
   firewall { '001 INPUT allow loopbacks':
     action  => accept,
     chain   => 'INPUT',
