@@ -20,12 +20,12 @@ class iptables::pre_rules {
   }
 
   firewall { '050 Allow related and established':
-    action  => accept,
-    state   => ['RELATED', 'ESTABLISHED'],
+    action => accept,
+    state  => ['RELATED', 'ESTABLISHED'],
   }
 
   firewall { '090 OUTPUT allow all outbound':
-    action  => accept,
-    chain   => 'OUTPUT',
+    action => accept,
+    chain  => 'OUTPUT',
   }
 }
